@@ -312,8 +312,8 @@
     </div>
 
     <script>
-        const SHEET_ID = 'YOUR_SHEET_ID_HERE'; // 수정 필요
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyLQGu5UQ79LZZPYR2rUOTQbOzMJ6CyCahMqdJ1PqKHiqsNFIbEtw0CID6mkqtEj3Hx/exec'; // 수정 필요
+        const SHEET_ID = '1LM_U0txOR-4qij51mRId8lYIuFg6lXhqsV2PYbGVhT8';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyLQGu5UQ79LZZPYR2rUOTQbOzMJ6CyCahMqdJ1PqKHiqsNFIbEtw0CID6mkqtEj3Hx/exec';
 
         let inventoryData = {}; // { "도번|S/N": { stock, lastIn, lastOut, manageNo, remark } }
         let transactionLog = []; // 전체 거래 이력
@@ -489,74 +489,37 @@
 
             showStatus('저장 중...');
 
-            // GAS 호출 (실제 배포 후)
-            // fetch(GAS_URL, {
-            //     method: 'POST',
-            //     body: JSON.stringify(payload)
-            // }).then(r => r.json())
-            //   .then(data => {
-            //       if (data.success) {
-            //           clearForm();
-            //           loadInventory();
-            //           showStatus('저장되었습니다.');
-            //       } else {
-            //           showStatus(data.error, 'error');
-            //       }
-            //   })
-            //   .catch(err => showStatus(err.message, 'error'));
-
-            // 임시: 로컬 저장 (테스트용)
-            const key = `${partNo}|${serialNo}`;
-            if (!inventoryData[key]) {
-                inventoryData[key] = {
-                    stock: 0,
-                    lastIn: null,
-                    lastOut: null,
-                    manageNo: manageNo,
-                    remark: remark
-                };
-            }
-            const entry = inventoryData[key];
-            if (transType === 'IN') {
-                entry.stock += quantity;
-                entry.lastIn = transDate;
-            } else if (transType === 'OUT') {
-                entry.stock -= quantity;
-                entry.lastOut = transDate;
-            } else if (transType === 'ADJ') {
-                entry.stock += quantity; // 보정값
-            }
-            // 새로 입력된 관리번호/비고로 업데이트
-            if (manageNo) entry.manageNo = manageNo;
-            if (remark) entry.remark = remark;
-            transactionLog.push(payload);
-
-            clearForm();
-            renderInventory();
-            showStatus('저장되었습니다.');
+            // GAS 호출
+            fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            }).then(r => r.json())
+              .then(data => {
+                  if (data.success) {
+                      clearForm();
+                      loadInventory();
+                      showStatus('저장되었습니다.');
+                  } else {
+                      showStatus(data.error, 'error');
+                  }
+              })
+              .catch(err => showStatus(err.message, 'error'));
         }
 
         // 재고 조회
         function loadInventory() {
-            // GAS 호출 (실제 배포 후)
-            // fetch(GAS_URL + '?action=getInventory')
-            //     .then(r => r.json())
-            //     .then(data => {
-            //         inventoryData = data.inventory;
-            //         transactionLog = data.transactions;
-            //         renderInventory();
-            //     })
-            //     .catch(err => showStatus('데이터 로드 실패: ' + err.message, 'error'));
-
-            // 임시: 샘플 데이터
-            if (Object.keys(inventoryData).length === 0) {
-                inventoryData = {
-                    '120009436|1': { stock: 1, lastIn: '2023-02-13', lastOut: '2023-01-12', manageNo: 'N15-1', remark: '사상' },
-                    '120009436|6': { stock: 1, lastIn: '2023-02-15', lastOut: '2023-03-27', manageNo: '23-138-5', remark: '' },
-                    '120011273|1': { stock: 0, lastIn: '2022-09-16', lastOut: null, manageNo: '', remark: '' }
-                };
-                renderInventory();
-            }
+            // GAS 호출
+            fetch(GAS_URL + '?action=getInventory')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        inventoryData = data.inventory;
+                        renderInventory();
+                    } else {
+                        showStatus('데이터 로드 실패: ' + data.error, 'error');
+                    }
+                })
+                .catch(err => showStatus('데이터 로드 실패: ' + err.message, 'error'));
         }
 
         // 테이블 렌더링
