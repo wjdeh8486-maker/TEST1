@@ -114,6 +114,8 @@
         /* 모바일 테이블 */
         .table-wrapper {
             overflow-x: auto;
+            overflow-y: auto;
+            max-height: 70vh;
             -webkit-overflow-scrolling: touch;
         }
         table {
@@ -130,6 +132,9 @@
             color: #2c3e50;
             border-bottom: 2px solid #bdc3c7;
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         td {
             padding: 8px;
@@ -563,7 +568,7 @@
 
     <script>
         const SHEET_ID = '1LM_U0txOR-4qij51mRId8lYIuFg6lXhqsV2PYbGVhT8';
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx4eypu5nJi6oifhCMrH6DActB-RuxQbxtM3RUaOz1I9UK_PA8kKLL_N2l3kiWU2dSR/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtO_fVKb-XO32qdJF0PJXYprWsTJpsGIUQnQNCTxIgRNGTTrJuPRl6X68bBa1zKam8/exec';
 
         let inventoryData = {};
         let allTransactions = [];
