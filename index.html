@@ -814,6 +814,13 @@
                     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     
                     let importCount = 0;
+                    let errorCount = 0;
+                    
+                    showStatus('업로드 중...');
+                    
+                    // 각 행을 순차적으로 GAS에 저장
+                    const promises = [];
+                    
                     for (let i = 1; i < rows.length; i++) {
                         const row = rows[i];
                         if (!row || row.length < 3) continue;
@@ -824,37 +831,51 @@
                         const quantity = row[3] ? parseInt(row[3]) : 1;
                         
                         if (!partNo) continue;
+                        
+                        // S/N 파싱
                         const snList = snRaw ? parseSnFormat(snRaw) : [''];
                         
                         snList.forEach(sn => {
-                            const key = `${partNo}|${sn}`;
-                            if (!inventoryData[key]) {
-                                inventoryData[key] = { stock: 0, lastIn: null, lastOut: null, manageNo: '', remark: '' };
-                            }
+                            const payload = {
+                                action: 'addTransaction',
+                                partNo: partNo,
+                                serialNo: sn,
+                                transType: transType,
+                                quantity: quantity,
+                                transDate: transDate,
+                                manageNo: '',
+                                remark: '엑셀 일괄 업로드'
+                            };
                             
-                            if (transType === 'OUT') {
-                                inventoryData[key].stock -= quantity;
-                                if (!inventoryData[key].lastOut || transDate > inventoryData[key].lastOut) {
-                                    inventoryData[key].lastOut = transDate;
+                            // GAS 호출 (비동기)
+                            const promise = fetch(GAS_URL, { 
+                                method: 'POST', 
+                                body: JSON.stringify(payload) 
+                            })
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.success) {
+                                    importCount++;
+                                } else {
+                                    errorCount++;
                                 }
-                            } else {
-                                inventoryData[key].stock += quantity;
-                                if (!inventoryData[key].lastIn || transDate > inventoryData[key].lastIn) {
-                                    inventoryData[key].lastIn = transDate;
-                                }
-                            }
-                            importCount++;
+                            })
+                            .catch(err => {
+                                errorCount++;
+                            });
+                            
+                            promises.push(promise);
                         });
                     }
                     
-                    if (importCount > 0) {
-                        renderInventory();
+                    // 모든 업로드 완료 후
+                    Promise.all(promises).then(() => {
+                        loadInventory();
                         const typeLabel = transType === 'OUT' ? '출고' : '입고';
-                        showStatus(`✓ ${importCount}건을 ${typeLabel}로 가져왔습니다.`);
+                        showStatus(`✓ ${importCount}건을 ${typeLabel}로 업로드했습니다. (오류: ${errorCount}건)`);
                         fileInput.value = '';
-                    } else {
-                        showStatus('가져올 데이터가 없습니다.', 'error');
-                    }
+                    });
+                    
                 } catch (err) {
                     showStatus(`파일 읽기 실패: ${err.message}`, 'error');
                 }
@@ -864,4 +885,3 @@
     </script>
 </body>
 </html>
-
