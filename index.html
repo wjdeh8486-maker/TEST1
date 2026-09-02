@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>입출고 관리 - NTL</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 4px 4px 0 0;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        /* 입력 영역 */
+        .input-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .input-group label {
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        .input-group input,
+        .input-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 13px;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+        }
+        .input-group.w2 {
+            grid-column: span 2;
+        }
+        .input-group.w3 {
+            grid-column: span 3;
+        }
+        .btn-add {
+            align-self: flex-end;
+            padding: 8px 16px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-add:hover {
+            background: #229954;
+        }
+        .btn-add:active {
+            transform: scale(0.98);
+        }
+        
+        /* 현황 테이블 */
+        .status-section {
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .section-title {
+            background: #34495e;
+            color: white;
+            padding: 12px 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #ecf0f1;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            color: #2c3e50;
+            border-bottom: 2px solid #bdc3c7;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ecf0f1;
+            font-size: 13px;
+        }
+        tr:hover {
+            background: #f9f9f9;
+        }
+        
+        /* 그룹 행 */
+        .group-row {
+            background: #f0f3f4;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .group-row:hover {
+            background: #e8ecef;
+        }
+        .expand-icon {
+            display: inline-block;
+            transition: transform 0.2s;
+            font-size: 12px;
+            margin-right: 4px;
+        }
+        .expanded .expand-icon {
+            transform: rotate(90deg);
+        }
+        
+        /* 상세 행 */
+        .detail-row {
+            background: #fafafa;
+        }
+        .detail-row.hidden {
+            display: none;
+        }
+        .detail-cell {
+            padding-left: 40px;
+        }
+        
+        /* 현재고 배지 */
+        .stock-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #3498db;
+            color: white;
+            border-radius: 3px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .stock-badge.zero {
+            background: #95a5a6;
+        }
+        .stock-badge.low {
+            background: #e74c3c;
+        }
+        
+        /* 거래 유형 색상 */
+        .type-in {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        .type-out {
+            color: #c0392b;
+            font-weight: 600;
+        }
+        .type-adjust {
+            color: #f39c12;
+            font-weight: 600;
+        }
+        
+        /* 로딩 & 메시지 */
+        .status-msg {
+            padding: 12px 20px;
+            font-size: 13px;
+            color: #27ae60;
+        }
+        .status-msg.error {
+            color: #c0392b;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .input-grid {
+                grid-template-columns: 1fr 1fr 1fr 1fr auto;
+            }
+            .input-group.w2 {
+                grid-column: span 2;
+            }
+            .input-group.w3 {
+                grid-column: 1 / -2;
+            }
+        }
+        @media (max-width: 768px) {
+            .input-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .input-group.w2,
+            .input-group.w3 {
+                grid-column: 1 / -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 입출고 관리</h1>
+        </div>
+
+        <!-- 입력 섹션 -->
+        <div class="input-section">
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>도번 *</label>
+                    <input type="text" id="partNo" placeholder="예: 120009436">
+                </div>
+                <div class="input-group">
+                    <label>S/N *</label>
+                    <input type="text" id="serialNo" placeholder="예: 1, 6, 15">
+                </div>
+                <div class="input-group">
+                    <label>거래유형 *</label>
+                    <select id="transType" onchange="updateDateLabel()">
+                        <option value="">선택</option>
+                        <option value="IN">입고</option>
+                        <option value="OUT">출고</option>
+                        <option value="ADJ">실사</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>수량 *</label>
+                    <input type="number" id="quantity" placeholder="0" min="0">
+                </div>
+                <div class="input-group">
+                    <label id="dateLabel">거래일 *</label>
+                    <input type="date" id="transDate">
+                </div>
+                <div class="input-group">
+                    <label>관리번호</label>
+                    <input type="text" id="manageNo" placeholder="N15-1, 23-1-1">
+                </div>
+                <button class="btn-add" onclick="addTransaction()">저장</button>
+            </div>
+            <div class="input-grid" style="margin-top: 10px;">
+                <div class="input-group" style="grid-column: span 2;">
+                    <label>비고 (제품특이사항)</label>
+                    <input type="text" id="remark" placeholder="사상, 실사, 기타 특이사항">
+                </div>
+                <div class="input-group">
+                    <label>엑셀 파일</label>
+                    <input type="file" id="excelFile" accept=".xlsx,.xls">
+                </div>
+                <div class="input-group">
+                    <label>거래유형</label>
+                    <select id="excelTransType">
+                        <option value="OUT">출고</option>
+                        <option value="IN">입고</option>
+                    </select>
+                </div>
+                <div class="input-group" style="align-self: flex-end;">
+                    <button class="btn-add" onclick="importExcel()" style="margin: 0; width: 100%;">엑셀 가져오기</button>
+                </div>
+            </div>
+            <div id="statusMsg"></div>
+            <div id="uploadStatus" style="font-size: 12px; color: #7f8c8d; margin-top: 8px;"></div>
+        </div>
+
+        <!-- 현황 테이블 -->
+        <div class="status-section">
+            <div class="section-title">현재고 현황 (도번+S/N별)</div>
+            <table id="inventoryTable">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">도번</th>
+                        <th style="width: 8%;">S/N</th>
+                        <th style="width: 10%;">현재고</th>
+                        <th style="width: 12%;">최근입고</th>
+                        <th style="width: 12%;">최근출고</th>
+                        <th style="width: 15%;">관리번호</th>
+                        <th style="width: 28%;">비고</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryBody">
+                    <tr><td colspan="6" style="text-align: center; color: #999;">데이터 로딩 중...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_ID = 'YOUR_SHEET_ID_HERE'; // 수정 필요
+        const GAS_URL = 'YOUR_GAS_DEPLOYMENT_URL_HERE'; // 수정 필요
+
+        let inventoryData = {}; // { "도번|S/N": { stock, lastIn, lastOut, manageNo, remark } }
+        let transactionLog = []; // 전체 거래 이력
+
+        /**
+         * S/N 정규화
+         * "26173-25,31,35/26122-1,2,4" → ["26173-25", "26173-31", "26173-35", "26122-1", "26122-2", "26122-4"]
+         */
+        function parseSnFormat(snStr) {
+            if (!snStr || !snStr.trim()) return [];
+            
+            const result = [];
+            const groups = snStr.split('/'); // "/" 기준으로 프리픽스 그룹 분리
+            
+            groups.forEach(group => {
+                const match = group.match(/^(\d+-?)(.*)$/); // "프리픽스-" + "숫자들"
+                if (!match) return;
+                
+                const prefix = match[1]; // "26173-"
+                const numbers = match[2].split(',').map(s => s.trim()).filter(s => s);
+                
+                numbers.forEach(num => {
+                    result.push(prefix + num); // "26173-25"
+                });
+            });
+            
+            return result;
+        }
+
+        /**
+         * 엑셀 가져오기
+         * 컬럼: No. | 검사일 | 도번 | S/N | 검사수 | 검고No (또는 유사 구조)
+         */
+        function importExcel() {
+            const fileInput = document.getElementById('excelFile');
+            const file = fileInput.files[0];
+            const transType = document.getElementById('excelTransType').value; // IN or OUT
+            
+            if (!file) {
+                showStatus('파일을 선택하세요.', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    
+                    let importCount = 0;
+                    const errors = [];
+                    
+                    // 첫 행은 헤더 스킵
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (!row || row.length < 3) continue;
+                        
+                        const transDate = row[0] ? String(row[0]).trim() : '';
+                        const partNo = row[1] ? String(row[1]).trim() : '';
+                        const snRaw = row[2] ? String(row[2]).trim() : '';
+                        const quantity = row[3] ? parseInt(row[3]) : 1;
+                        
+                        if (!partNo) continue;
+                        
+                        // S/N 정규화
+                        const snList = snRaw ? parseSnFormat(snRaw) : [''];
+                        
+                        snList.forEach(sn => {
+                            try {
+                                const key = `${partNo}|${sn}`;
+                                if (!inventoryData[key]) {
+                                    inventoryData[key] = {
+                                        stock: 0,
+                                        lastIn: null,
+                                        lastOut: null,
+                                        manageNo: '',
+                                        remark: ''
+                                    };
+                                }
+                                
+                                // 거래유형에 따라 처리
+                                if (transType === 'OUT') {
+                                    inventoryData[key].stock -= quantity;
+                                    if (!inventoryData[key].lastOut || transDate > inventoryData[key].lastOut) {
+                                        inventoryData[key].lastOut = transDate;
+                                    }
+                                } else {
+                                    // IN
+                                    inventoryData[key].stock += quantity;
+                                    if (!inventoryData[key].lastIn || transDate > inventoryData[key].lastIn) {
+                                        inventoryData[key].lastIn = transDate;
+                                    }
+                                }
+                                
+                                importCount++;
+                            } catch (err) {
+                                errors.push(`행 ${i+1}: ${err.message}`);
+                            }
+                        });
+                    }
+                    
+                    if (importCount > 0) {
+                        renderInventory();
+                        const typeLabel = transType === 'OUT' ? '출고' : '입고';
+                        showStatus(`✓ ${importCount}건을 ${typeLabel}로 가져왔습니다.`);
+                        document.getElementById('uploadStatus').textContent = `${importCount}건 ${typeLabel} 임포트 완료`;
+                        fileInput.value = '';
+                    } else {
+                        showStatus('가져올 데이터가 없습니다.', 'error');
+                    }
+                    
+                    if (errors.length > 0) {
+                        console.warn('Import warnings:', errors);
+                    }
+                } catch (err) {
+                    showStatus(`파일 읽기 실패: ${err.message}`, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 페이지 로드
+        document.addEventListener('DOMContentLoaded', () => {
+            // 거래일을 오늘로 기본 설정
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('transDate').value = today;
+            loadInventory();
+        });
+
+        // 거래유형에 따라 거래일 라벨 변경
+        function updateDateLabel() {
+            const transType = document.getElementById('transType').value;
+            const label = document.getElementById('dateLabel');
+            
+            if (transType === 'IN') {
+                label.textContent = '입고일 *';
+            } else if (transType === 'OUT') {
+                label.textContent = '출고일 *';
+            } else if (transType === 'ADJ') {
+                label.textContent = '실사일 *';
+            } else {
+                label.textContent = '거래일 *';
+            }
+        }
+
+        // 거래 추가
+        function addTransaction() {
+            const partNo = document.getElementById('partNo').value.trim();
+            const serialNo = document.getElementById('serialNo').value.trim();
+            const transType = document.getElementById('transType').value;
+            const quantity = parseInt(document.getElementById('quantity').value) || 0;
+            const transDate = document.getElementById('transDate').value;
+            const manageNo = document.getElementById('manageNo').value.trim();
+            const remark = document.getElementById('remark').value.trim();
+
+            if (!partNo || !serialNo || !transType || quantity <= 0 || !transDate) {
+                showStatus('필수 입력값(도번, S/N, 거래유형, 수량, 거래일)을 확인하세요.', 'error');
+                return;
+            }
+
+            const payload = {
+                action: 'addTransaction',
+                partNo,
+                serialNo,
+                transType,
+                quantity,
+                transDate,
+                manageNo,
+                remark
+            };
+
+            showStatus('저장 중...');
+
+            // GAS 호출 (실제 배포 후)
+            // fetch(GAS_URL, {
+            //     method: 'POST',
+            //     body: JSON.stringify(payload)
+            // }).then(r => r.json())
+            //   .then(data => {
+            //       if (data.success) {
+            //           clearForm();
+            //           loadInventory();
+            //           showStatus('저장되었습니다.');
+            //       } else {
+            //           showStatus(data.error, 'error');
+            //       }
+            //   })
+            //   .catch(err => showStatus(err.message, 'error'));
+
+            // 임시: 로컬 저장 (테스트용)
+            const key = `${partNo}|${serialNo}`;
+            if (!inventoryData[key]) {
+                inventoryData[key] = {
+                    stock: 0,
+                    lastIn: null,
+                    lastOut: null,
+                    manageNo: manageNo,
+                    remark: remark
+                };
+            }
+            const entry = inventoryData[key];
+            if (transType === 'IN') {
+                entry.stock += quantity;
+                entry.lastIn = transDate;
+            } else if (transType === 'OUT') {
+                entry.stock -= quantity;
+                entry.lastOut = transDate;
+            } else if (transType === 'ADJ') {
+                entry.stock += quantity; // 보정값
+            }
+            // 새로 입력된 관리번호/비고로 업데이트
+            if (manageNo) entry.manageNo = manageNo;
+            if (remark) entry.remark = remark;
+            transactionLog.push(payload);
+
+            clearForm();
+            renderInventory();
+            showStatus('저장되었습니다.');
+        }
+
+        // 재고 조회
+        function loadInventory() {
+            // GAS 호출 (실제 배포 후)
+            // fetch(GAS_URL + '?action=getInventory')
+            //     .then(r => r.json())
+            //     .then(data => {
+            //         inventoryData = data.inventory;
+            //         transactionLog = data.transactions;
+            //         renderInventory();
+            //     })
+            //     .catch(err => showStatus('데이터 로드 실패: ' + err.message, 'error'));
+
+            // 임시: 샘플 데이터
+            if (Object.keys(inventoryData).length === 0) {
+                inventoryData = {
+                    '120009436|1': { stock: 1, lastIn: '2023-02-13', lastOut: '2023-01-12', manageNo: 'N15-1', remark: '사상' },
+                    '120009436|6': { stock: 1, lastIn: '2023-02-15', lastOut: '2023-03-27', manageNo: '23-138-5', remark: '' },
+                    '120011273|1': { stock: 0, lastIn: '2022-09-16', lastOut: null, manageNo: '', remark: '' }
+                };
+                renderInventory();
+            }
+        }
+
+        // 테이블 렌더링
+        function renderInventory() {
+            const tbody = document.getElementById('inventoryBody');
+            if (Object.keys(inventoryData).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">등록된 데이터가 없습니다.</td></tr>';
+                return;
+            }
+
+            const sorted = Object.entries(inventoryData).sort();
+            tbody.innerHTML = sorted.map(([key, data]) => {
+                const [partNo, sn] = key.split('|');
+                const stock = data.stock;
+                const stockClass = stock === 0 ? 'zero' : stock < 5 ? 'low' : '';
+                const manageNo = data.manageNo || '-';
+                const remark = data.remark || '-';
+
+                return `
+                    <tr class="group-row" onclick="toggleDetail(this)">
+                        <td>${partNo}</td>
+                        <td>${sn}</td>
+                        <td><span class="stock-badge ${stockClass}">${stock}</span></td>
+                        <td>${data.lastIn || '-'}</td>
+                        <td>${data.lastOut || '-'}</td>
+                        <td><strong>${manageNo}</strong></td>
+                        <td>${remark}</td>
+                    </tr>
+                    <tr class="detail-row hidden" data-key="${key}">
+                        <td colspan="7" class="detail-cell">
+                            <div style="padding: 10px 0;">
+                                거래이력 상세 (향후 타임라인 추가)
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 상세 토글
+        function toggleDetail(row) {
+            row.classList.toggle('expanded');
+            const detail = row.nextElementSibling;
+            if (detail && detail.classList.contains('detail-row')) {
+                detail.classList.toggle('hidden');
+            }
+        }
+
+        // 폼 초기화
+        function clearForm() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('partNo').value = '';
+            document.getElementById('serialNo').value = '';
+            document.getElementById('transType').value = '';
+            document.getElementById('quantity').value = '';
+            document.getElementById('transDate').value = today;
+            document.getElementById('manageNo').value = '';
+            document.getElementById('remark').value = '';
+            document.getElementById('dateLabel').textContent = '거래일 *';
+            document.getElementById('partNo').focus();
+        }
+
+        // 상태 메시지
+        function showStatus(msg, type = 'info') {
+            const el = document.getElementById('statusMsg');
+            el.textContent = msg;
+            el.className = 'status-msg' + (type === 'error' ? ' error' : '');
+            if (type !== 'error') setTimeout(() => el.textContent = '', 3000);
+        }
+    </script>
+</body>
+</html>
