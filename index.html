@@ -343,8 +343,8 @@
                     <input type="text" id="partNo" placeholder="예: 120009436">
                 </div>
                 <div class="input-group">
-                    <label>S/N *</label>
-                    <input type="text" id="serialNo" placeholder="예: 1, 6, 15">
+                    <label>S/N (선택사항)</label>
+                    <input type="text" id="serialNo" placeholder="없으면 공란으로 둬도 됨">
                 </div>
                 <div class="input-group">
                     <label>거래유형 *</label>
@@ -502,7 +502,7 @@
 
     <script>
         const SHEET_ID = '1LM_U0txOR-4qij51mRId8lYIuFg6lXhqsV2PYbGVhT8';
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyC1v9IVmcBoeCajR3N4-x9lPw5H4wW_83RvnBH4wgE89WumVIUvmSPcF2pvzgWoEk/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwUvD1EeK8iESrGPJv4KPlSMF8b-iDtv_2xcuW0GLjp6yMiTw2HLdsmCezd20vlh_ZX/exec';
 
         let inventoryData = {};
         let allTransactions = [];
@@ -549,16 +549,21 @@
 
         function addTransaction() {
             const partNo = document.getElementById('partNo').value.trim();
-            const serialNo = document.getElementById('serialNo').value.trim();
+            let serialNo = document.getElementById('serialNo').value.trim();
             const transType = document.getElementById('transType').value;
             const quantity = parseInt(document.getElementById('quantity').value) || 0;
             const transDate = document.getElementById('transDate').value;
             const manageNo = document.getElementById('manageNo').value.trim();
             const remark = document.getElementById('remark').value.trim();
 
-            if (!partNo || !serialNo || !transType || quantity <= 0 || !transDate) {
-                showStatus('필수 입력값을 확인하세요.', 'error');
+            if (!partNo || !transType || quantity <= 0 || !transDate) {
+                showStatus('필수 입력값(도번, 거래유형, 수량, 거래일)을 확인하세요.', 'error');
                 return;
+            }
+
+            // S/N이 없으면 "없음"으로 자동 입력
+            if (!serialNo) {
+                serialNo = '없음';
             }
 
             const payload = {
