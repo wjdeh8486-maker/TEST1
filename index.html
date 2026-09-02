@@ -502,7 +502,7 @@
 
     <script>
         const SHEET_ID = '1LM_U0txOR-4qij51mRId8lYIuFg6lXhqsV2PYbGVhT8';
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbwZ4J3yHrsCZRTUaoKgwOSDrNRO3J5YgdD3RSOzvjfu33O_GvLbkVP_JcyK2RXa8qxr/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtO_fVKb-XO32qdJF0PJXYprWsTJpsGIUQnQNCTxIgRNGTTrJuPRl6X68bBa1zKam8/exec';
 
         let inventoryData = {};
         let allTransactions = [];
@@ -579,6 +579,8 @@
                 return;
             }
 
+            showStatus('검색 중...');
+
             const payload = {
                 action: 'searchTransactions',
                 partNo, sn, searchType, searchLimit
@@ -589,6 +591,8 @@
                 .then(data => {
                     if (data.success) {
                         displaySearchResults(data.results);
+                        document.getElementById('searchModal').classList.add('show');
+                        showStatus('검색 완료');
                     } else {
                         showStatus(data.error, 'error');
                     }
@@ -642,7 +646,6 @@
 
         function closeEditModal() {
             document.getElementById('editModal').classList.remove('show');
-            document.getElementById('searchModal').classList.add('show');
         }
 
         function saveEdit() {
@@ -664,7 +667,8 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        closeEditModal();
+                        document.getElementById('editModal').classList.remove('show');
+                        document.getElementById('searchModal').classList.remove('show');
                         loadInventory();
                         showStatus('수정되었습니다.');
                     } else {
@@ -695,10 +699,9 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
+                        document.getElementById('searchModal').classList.remove('show');
                         loadInventory();
                         showStatus('삭제되었습니다.');
-                        document.getElementById('searchResults').innerHTML = '';
-                        searchTransactions(); // 목록 새로고침
                     } else {
                         showStatus('삭제 실패: ' + data.error, 'error');
                     }
