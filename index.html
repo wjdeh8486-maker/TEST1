@@ -70,12 +70,6 @@
             border-color: #3498db;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
         }
-        .input-group.w2 {
-            grid-column: span 2;
-        }
-        .input-group.w3 {
-            grid-column: span 3;
-        }
         .btn-add {
             align-self: flex-end;
             padding: 8px 16px;
@@ -91,9 +85,6 @@
         .btn-add:hover {
             background: #229954;
         }
-        .btn-add:active {
-            transform: scale(0.98);
-        }
         
         /* 현황 테이블 */
         .status-section {
@@ -101,13 +92,30 @@
             border-radius: 4px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             overflow: hidden;
+            margin-bottom: 20px;
         }
-        .section-title {
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             background: #34495e;
             color: white;
             padding: 12px 20px;
             font-weight: 600;
             font-size: 14px;
+        }
+        .btn-edit {
+            padding: 6px 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .btn-edit:hover {
+            background: #2980b9;
         }
         table {
             width: 100%;
@@ -130,38 +138,10 @@
         tr:hover {
             background: #f9f9f9;
         }
-        
-        /* 그룹 행 */
         .group-row {
             background: #f0f3f4;
-            cursor: pointer;
             font-weight: 600;
         }
-        .group-row:hover {
-            background: #e8ecef;
-        }
-        .expand-icon {
-            display: inline-block;
-            transition: transform 0.2s;
-            font-size: 12px;
-            margin-right: 4px;
-        }
-        .expanded .expand-icon {
-            transform: rotate(90deg);
-        }
-        
-        /* 상세 행 */
-        .detail-row {
-            background: #fafafa;
-        }
-        .detail-row.hidden {
-            display: none;
-        }
-        .detail-cell {
-            padding-left: 40px;
-        }
-        
-        /* 현재고 배지 */
         .stock-badge {
             display: inline-block;
             padding: 4px 8px;
@@ -178,21 +158,7 @@
             background: #e74c3c;
         }
         
-        /* 거래 유형 색상 */
-        .type-in {
-            color: #27ae60;
-            font-weight: 600;
-        }
-        .type-out {
-            color: #c0392b;
-            font-weight: 600;
-        }
-        .type-adjust {
-            color: #f39c12;
-            font-weight: 600;
-        }
-        
-        /* 로딩 & 메시지 */
+        /* 메시지 */
         .status-msg {
             padding: 12px 20px;
             font-size: 13px;
@@ -201,26 +167,164 @@
         .status-msg.error {
             color: #c0392b;
         }
-        
-        /* 반응형 */
-        @media (max-width: 1024px) {
-            .input-grid {
-                grid-template-columns: 1fr 1fr 1fr 1fr auto;
-            }
-            .input-group.w2 {
-                grid-column: span 2;
-            }
-            .input-group.w3 {
-                grid-column: 1 / -2;
-            }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow-y: auto;
         }
+        .modal.show {
+            display: block;
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 4px;
+            max-width: 600px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .modal-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-group label {
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        .modal-group input,
+        .modal-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 13px;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+        .modal-group.full {
+            grid-column: 1 / -1;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .btn-modal {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .btn-save {
+            background: #27ae60;
+            color: white;
+        }
+        .btn-save:hover {
+            background: #229954;
+        }
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+        .btn-close {
+            background: #95a5a6;
+            color: white;
+        }
+        .btn-close:hover {
+            background: #7f8c8d;
+        }
+        .btn-search {
+            padding: 8px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            align-self: flex-end;
+        }
+        .btn-search:hover {
+            background: #2980b9;
+        }
+
+        /* 결과 테이블 */
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .result-table th {
+            background: #ecf0f1;
+            padding: 8px;
+            font-size: 11px;
+            border: 1px solid #bdc3c7;
+        }
+        .result-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            font-size: 12px;
+        }
+        .result-table tr:hover {
+            background: #f9f9f9;
+        }
+        .result-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .btn-small {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .btn-small-edit {
+            background: #3498db;
+            color: white;
+        }
+        .btn-small-edit:hover {
+            background: #2980b9;
+        }
+        .btn-small-delete {
+            background: #e74c3c;
+            color: white;
+        }
+        .btn-small-delete:hover {
+            background: #c0392b;
+        }
+
+        /* 반응형 */
         @media (max-width: 768px) {
             .input-grid {
                 grid-template-columns: 1fr 1fr;
-            }
-            .input-group.w2,
-            .input-group.w3 {
-                grid-column: 1 / -1;
             }
         }
     </style>
@@ -286,12 +390,14 @@
                 </div>
             </div>
             <div id="statusMsg"></div>
-            <div id="uploadStatus" style="font-size: 12px; color: #7f8c8d; margin-top: 8px;"></div>
         </div>
 
         <!-- 현황 테이블 -->
         <div class="status-section">
-            <div class="section-title">현재고 현황 (도번+S/N별)</div>
+            <div class="section-header">
+                <div>현재고 현황 (도번+S/N별)</div>
+                <button class="btn-edit" onclick="openSearchModal()">🔍 거래 수정/삭제</button>
+            </div>
             <table id="inventoryTable">
                 <thead>
                     <tr>
@@ -305,52 +411,377 @@
                     </tr>
                 </thead>
                 <tbody id="inventoryBody">
-                    <tr><td colspan="6" style="text-align: center; color: #999;">데이터 로딩 중...</td></tr>
+                    <tr><td colspan="7" style="text-align: center; color: #999;">데이터 로딩 중...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
+    <!-- 검색 모달 -->
+    <div id="searchModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">🔍 거래 수정/삭제 - 검색</div>
+            <div class="modal-grid">
+                <div class="modal-group">
+                    <label>도번</label>
+                    <input type="text" id="searchPartNo" placeholder="예: 120009436">
+                </div>
+                <div class="modal-group">
+                    <label>S/N</label>
+                    <input type="text" id="searchSN" placeholder="예: 1">
+                </div>
+                <div class="modal-group">
+                    <label>거래유형</label>
+                    <select id="searchType">
+                        <option value="">전체</option>
+                        <option value="IN">입고</option>
+                        <option value="OUT">출고</option>
+                    </select>
+                </div>
+                <div class="modal-group">
+                    <label>개수</label>
+                    <select id="searchLimit">
+                        <option value="10">10개</option>
+                        <option value="20">20개</option>
+                        <option value="50">50개</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+                <button class="btn-search" onclick="searchTransactions()">검색</button>
+                <button class="btn-modal btn-close" onclick="closeSearchModal()">취소</button>
+            </div>
+            <div id="searchResults"></div>
+        </div>
+    </div>
+
+    <!-- 수정 모달 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">거래 정보 수정</div>
+            <div class="modal-grid">
+                <div class="modal-group">
+                    <label>도번</label>
+                    <input type="text" id="editPartNo" readonly style="background: #ecf0f1;">
+                </div>
+                <div class="modal-group">
+                    <label>S/N</label>
+                    <input type="text" id="editSN" readonly style="background: #ecf0f1;">
+                </div>
+                <div class="modal-group">
+                    <label>거래일</label>
+                    <input type="date" id="editDate">
+                </div>
+                <div class="modal-group">
+                    <label>거래유형</label>
+                    <select id="editType">
+                        <option value="IN">입고</option>
+                        <option value="OUT">출고</option>
+                        <option value="ADJ">실사</option>
+                    </select>
+                </div>
+                <div class="modal-group">
+                    <label>수량</label>
+                    <input type="number" id="editQty">
+                </div>
+                <div class="modal-group">
+                    <label>관리번호</label>
+                    <input type="text" id="editManageNo">
+                </div>
+                <div class="modal-group full">
+                    <label>비고</label>
+                    <input type="text" id="editRemark">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-save" onclick="saveEdit()">저장</button>
+                <button class="btn-modal btn-close" onclick="closeEditModal()">취소</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SHEET_ID = '1LM_U0txOR-4qij51mRId8lYIuFg6lXhqsV2PYbGVhT8';
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyGfAdnK8kHbNZGuioomyCwyZQNJn0lqumS2k2kciF4DuzIB_pkFIIsG50GX7Nbxkpd/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtO_fVKb-XO32qdJF0PJXYprWsTJpsGIUQnQNCTxIgRNGTTrJuPRl6X68bBa1zKam8/exec';
 
-        let inventoryData = {}; // { "도번|S/N": { stock, lastIn, lastOut, manageNo, remark } }
-        let transactionLog = []; // 전체 거래 이력
+        let inventoryData = {};
+        let allTransactions = [];
+        let currentEditData = null;
 
-        /**
-         * S/N 정규화
-         * "26173-25,31,35/26122-1,2,4" → ["26173-25", "26173-31", "26173-35", "26122-1", "26122-2", "26122-4"]
-         */
-        function parseSnFormat(snStr) {
-            if (!snStr || !snStr.trim()) return [];
+        // 페이지 로드
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('transDate').value = today;
+            loadInventory();
+        });
+
+        function updateDateLabel() {
+            const transType = document.getElementById('transType').value;
+            const label = document.getElementById('dateLabel');
+            if (transType === 'IN') label.textContent = '입고일 *';
+            else if (transType === 'OUT') label.textContent = '출고일 *';
+            else if (transType === 'ADJ') label.textContent = '실사일 *';
+            else label.textContent = '거래일 *';
+        }
+
+        function addTransaction() {
+            const partNo = document.getElementById('partNo').value.trim();
+            const serialNo = document.getElementById('serialNo').value.trim();
+            const transType = document.getElementById('transType').value;
+            const quantity = parseInt(document.getElementById('quantity').value) || 0;
+            const transDate = document.getElementById('transDate').value;
+            const manageNo = document.getElementById('manageNo').value.trim();
+            const remark = document.getElementById('remark').value.trim();
+
+            if (!partNo || !serialNo || !transType || quantity <= 0 || !transDate) {
+                showStatus('필수 입력값을 확인하세요.', 'error');
+                return;
+            }
+
+            const payload = {
+                action: 'addTransaction',
+                partNo, serialNo, transType, quantity, transDate, manageNo, remark
+            };
+
+            showStatus('저장 중...');
+
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        clearForm();
+                        loadInventory();
+                        showStatus('저장되었습니다.');
+                    } else {
+                        showStatus(data.error, 'error');
+                    }
+                })
+                .catch(err => showStatus(err.message, 'error'));
+        }
+
+        function openSearchModal() {
+            document.getElementById('searchModal').classList.add('show');
+        }
+
+        function closeSearchModal() {
+            document.getElementById('searchModal').classList.remove('show');
+            document.getElementById('searchResults').innerHTML = '';
+        }
+
+        function searchTransactions() {
+            const partNo = document.getElementById('searchPartNo').value.trim();
+            const sn = document.getElementById('searchSN').value.trim();
+            const searchType = document.getElementById('searchType').value;
+            const searchLimit = parseInt(document.getElementById('searchLimit').value);
+
+            if (!partNo && !sn) {
+                showStatus('도번 또는 S/N을 입력하세요.', 'error');
+                return;
+            }
+
+            const payload = {
+                action: 'searchTransactions',
+                partNo, sn, searchType, searchLimit
+            };
+
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        displaySearchResults(data.results);
+                    } else {
+                        showStatus(data.error, 'error');
+                    }
+                })
+                .catch(err => showStatus('검색 실패: ' + err.message, 'error'));
+        }
+
+        function displaySearchResults(results) {
+            allTransactions = results;
+            if (!results || results.length === 0) {
+                document.getElementById('searchResults').innerHTML = '<div style="margin-top: 20px; color: #999; text-align: center;">검색 결과가 없습니다.</div>';
+                return;
+            }
+
+            let html = '<table class="result-table"><thead><tr><th>거래일</th><th>S/N</th><th>유형</th><th>수량</th><th>관리번호</th><th>비고</th><th></th></tr></thead><tbody>';
             
-            const result = [];
-            const groups = snStr.split('/'); // "/" 기준으로 프리픽스 그룹 분리
-            
-            groups.forEach(group => {
-                const match = group.match(/^(\d+-?)(.*)$/); // "프리픽스-" + "숫자들"
-                if (!match) return;
-                
-                const prefix = match[1]; // "26173-"
-                const numbers = match[2].split(',').map(s => s.trim()).filter(s => s);
-                
-                numbers.forEach(num => {
-                    result.push(prefix + num); // "26173-25"
-                });
+            results.forEach((tx, idx) => {
+                html += `<tr>
+                    <td>${tx.transDate}</td>
+                    <td>${tx.sn}</td>
+                    <td>${tx.transType}</td>
+                    <td>${tx.quantity}</td>
+                    <td>${tx.manageNo || '-'}</td>
+                    <td>${tx.remark || '-'}</td>
+                    <td style="white-space: nowrap;">
+                        <button class="btn-small btn-small-edit" onclick="openEditModal(${idx})">수정</button>
+                        <button class="btn-small btn-small-delete" onclick="confirmDelete(${idx})">삭제</button>
+                    </td>
+                </tr>`;
             });
             
+            html += '</tbody></table>';
+            document.getElementById('searchResults').innerHTML = html;
+        }
+
+        function openEditModal(idx) {
+            const tx = allTransactions[idx];
+            currentEditData = tx;
+
+            document.getElementById('editPartNo').value = tx.partNo;
+            document.getElementById('editSN').value = tx.sn;
+            document.getElementById('editDate').value = tx.transDate;
+            document.getElementById('editType').value = tx.transType;
+            document.getElementById('editQty').value = tx.quantity;
+            document.getElementById('editManageNo').value = tx.manageNo || '';
+            document.getElementById('editRemark').value = tx.remark || '';
+
+            document.getElementById('searchModal').classList.remove('show');
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+            document.getElementById('searchModal').classList.add('show');
+        }
+
+        function saveEdit() {
+            const tx = currentEditData;
+            const payload = {
+                action: 'updateTransaction',
+                partNo: tx.partNo,
+                sn: tx.sn,
+                oldTransDate: tx.transDate,
+                oldTransType: tx.transType,
+                transDate: document.getElementById('editDate').value,
+                transType: document.getElementById('editType').value,
+                quantity: parseInt(document.getElementById('editQty').value),
+                manageNo: document.getElementById('editManageNo').value.trim(),
+                remark: document.getElementById('editRemark').value.trim()
+            };
+
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        closeEditModal();
+                        loadInventory();
+                        showStatus('수정되었습니다.');
+                    } else {
+                        showStatus('수정 실패: ' + data.error, 'error');
+                    }
+                })
+                .catch(err => showStatus('오류: ' + err.message, 'error'));
+        }
+
+        function confirmDelete(idx) {
+            const tx = allTransactions[idx];
+            if (confirm(`도번: ${tx.partNo}, S/N: ${tx.sn}\n${tx.transDate} ${tx.transType} ${tx.quantity}개\n\n정말 삭제하시겠습니까?`)) {
+                deleteTransaction(idx);
+            }
+        }
+
+        function deleteTransaction(idx) {
+            const tx = allTransactions[idx];
+            const payload = {
+                action: 'deleteTransaction',
+                partNo: tx.partNo,
+                sn: tx.sn,
+                transDate: tx.transDate,
+                transType: tx.transType
+            };
+
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        loadInventory();
+                        showStatus('삭제되었습니다.');
+                        document.getElementById('searchResults').innerHTML = '';
+                        searchTransactions(); // 목록 새로고침
+                    } else {
+                        showStatus('삭제 실패: ' + data.error, 'error');
+                    }
+                })
+                .catch(err => showStatus('오류: ' + err.message, 'error'));
+        }
+
+        function loadInventory() {
+            fetch(GAS_URL + '?action=getInventory')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        inventoryData = data.inventory;
+                        renderInventory();
+                    } else {
+                        showStatus('데이터 로드 실패: ' + data.error, 'error');
+                    }
+                })
+                .catch(err => showStatus('데이터 로드 실패: ' + err.message, 'error'));
+        }
+
+        function renderInventory() {
+            const tbody = document.getElementById('inventoryBody');
+            if (Object.keys(inventoryData).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">등록된 데이터가 없습니다.</td></tr>';
+                return;
+            }
+
+            const sorted = Object.entries(inventoryData).sort();
+            tbody.innerHTML = sorted.map(([key, data]) => {
+                const [partNo, sn] = key.split('|');
+                const stock = data.stock;
+                const stockClass = stock === 0 ? 'zero' : stock < 5 ? 'low' : '';
+
+                return `<tr class="group-row">
+                    <td>${partNo}</td>
+                    <td>${sn}</td>
+                    <td><span class="stock-badge ${stockClass}">${stock}</span></td>
+                    <td>${data.lastIn || '-'}</td>
+                    <td>${data.lastOut || '-'}</td>
+                    <td><strong>${data.manageNo || '-'}</strong></td>
+                    <td>${data.remark || '-'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function clearForm() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('partNo').value = '';
+            document.getElementById('serialNo').value = '';
+            document.getElementById('transType').value = '';
+            document.getElementById('quantity').value = '';
+            document.getElementById('transDate').value = today;
+            document.getElementById('manageNo').value = '';
+            document.getElementById('remark').value = '';
+            document.getElementById('dateLabel').textContent = '거래일 *';
+        }
+
+        function showStatus(msg, type = 'info') {
+            const el = document.getElementById('statusMsg');
+            el.textContent = msg;
+            el.className = 'status-msg' + (type === 'error' ? ' error' : '');
+            if (type !== 'error') setTimeout(() => el.textContent = '', 3000);
+        }
+
+        function parseSnFormat(snStr) {
+            if (!snStr || !snStr.trim()) return [];
+            const result = [];
+            const groups = snStr.split('/');
+            groups.forEach(group => {
+                const match = group.match(/^(\d+-?)(.*)$/);
+                if (!match) return;
+                const prefix = match[1];
+                const numbers = match[2].split(',').map(s => s.trim()).filter(s => s);
+                numbers.forEach(num => result.push(prefix + num));
+            });
             return result;
         }
 
-        /**
-         * 엑셀 가져오기
-         * 컬럼: No. | 검사일 | 도번 | S/N | 검사수 | 검고No (또는 유사 구조)
-         */
         function importExcel() {
             const fileInput = document.getElementById('excelFile');
             const file = fileInput.files[0];
-            const transType = document.getElementById('excelTransType').value; // IN or OUT
+            const transType = document.getElementById('excelTransType').value;
             
             if (!file) {
                 showStatus('파일을 선택하세요.', 'error');
@@ -366,9 +797,6 @@
                     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     
                     let importCount = 0;
-                    const errors = [];
-                    
-                    // 첫 행은 헤더 스킵
                     for (let i = 1; i < rows.length; i++) {
                         const row = rows[i];
                         if (!row || row.length < 3) continue;
@@ -379,41 +807,26 @@
                         const quantity = row[3] ? parseInt(row[3]) : 1;
                         
                         if (!partNo) continue;
-                        
-                        // S/N 정규화
                         const snList = snRaw ? parseSnFormat(snRaw) : [''];
                         
                         snList.forEach(sn => {
-                            try {
-                                const key = `${partNo}|${sn}`;
-                                if (!inventoryData[key]) {
-                                    inventoryData[key] = {
-                                        stock: 0,
-                                        lastIn: null,
-                                        lastOut: null,
-                                        manageNo: '',
-                                        remark: ''
-                                    };
-                                }
-                                
-                                // 거래유형에 따라 처리
-                                if (transType === 'OUT') {
-                                    inventoryData[key].stock -= quantity;
-                                    if (!inventoryData[key].lastOut || transDate > inventoryData[key].lastOut) {
-                                        inventoryData[key].lastOut = transDate;
-                                    }
-                                } else {
-                                    // IN
-                                    inventoryData[key].stock += quantity;
-                                    if (!inventoryData[key].lastIn || transDate > inventoryData[key].lastIn) {
-                                        inventoryData[key].lastIn = transDate;
-                                    }
-                                }
-                                
-                                importCount++;
-                            } catch (err) {
-                                errors.push(`행 ${i+1}: ${err.message}`);
+                            const key = `${partNo}|${sn}`;
+                            if (!inventoryData[key]) {
+                                inventoryData[key] = { stock: 0, lastIn: null, lastOut: null, manageNo: '', remark: '' };
                             }
+                            
+                            if (transType === 'OUT') {
+                                inventoryData[key].stock -= quantity;
+                                if (!inventoryData[key].lastOut || transDate > inventoryData[key].lastOut) {
+                                    inventoryData[key].lastOut = transDate;
+                                }
+                            } else {
+                                inventoryData[key].stock += quantity;
+                                if (!inventoryData[key].lastIn || transDate > inventoryData[key].lastIn) {
+                                    inventoryData[key].lastIn = transDate;
+                                }
+                            }
+                            importCount++;
                         });
                     }
                     
@@ -421,173 +834,15 @@
                         renderInventory();
                         const typeLabel = transType === 'OUT' ? '출고' : '입고';
                         showStatus(`✓ ${importCount}건을 ${typeLabel}로 가져왔습니다.`);
-                        document.getElementById('uploadStatus').textContent = `${importCount}건 ${typeLabel} 임포트 완료`;
                         fileInput.value = '';
                     } else {
                         showStatus('가져올 데이터가 없습니다.', 'error');
-                    }
-                    
-                    if (errors.length > 0) {
-                        console.warn('Import warnings:', errors);
                     }
                 } catch (err) {
                     showStatus(`파일 읽기 실패: ${err.message}`, 'error');
                 }
             };
             reader.readAsArrayBuffer(file);
-        }
-
-        // 페이지 로드
-        document.addEventListener('DOMContentLoaded', () => {
-            // 거래일을 오늘로 기본 설정
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('transDate').value = today;
-            loadInventory();
-        });
-
-        // 거래유형에 따라 거래일 라벨 변경
-        function updateDateLabel() {
-            const transType = document.getElementById('transType').value;
-            const label = document.getElementById('dateLabel');
-            
-            if (transType === 'IN') {
-                label.textContent = '입고일 *';
-            } else if (transType === 'OUT') {
-                label.textContent = '출고일 *';
-            } else if (transType === 'ADJ') {
-                label.textContent = '실사일 *';
-            } else {
-                label.textContent = '거래일 *';
-            }
-        }
-
-        // 거래 추가
-        function addTransaction() {
-            const partNo = document.getElementById('partNo').value.trim();
-            const serialNo = document.getElementById('serialNo').value.trim();
-            const transType = document.getElementById('transType').value;
-            const quantity = parseInt(document.getElementById('quantity').value) || 0;
-            const transDate = document.getElementById('transDate').value;
-            const manageNo = document.getElementById('manageNo').value.trim();
-            const remark = document.getElementById('remark').value.trim();
-
-            if (!partNo || !serialNo || !transType || quantity <= 0 || !transDate) {
-                showStatus('필수 입력값(도번, S/N, 거래유형, 수량, 거래일)을 확인하세요.', 'error');
-                return;
-            }
-
-            const payload = {
-                action: 'addTransaction',
-                partNo,
-                serialNo,
-                transType,
-                quantity,
-                transDate,
-                manageNo,
-                remark
-            };
-
-            showStatus('저장 중...');
-
-            // GAS 호출
-            fetch(GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            }).then(r => r.json())
-              .then(data => {
-                  if (data.success) {
-                      clearForm();
-                      loadInventory();
-                      showStatus('저장되었습니다.');
-                  } else {
-                      showStatus(data.error, 'error');
-                  }
-              })
-              .catch(err => showStatus(err.message, 'error'));
-        }
-
-        // 재고 조회
-        function loadInventory() {
-            // GAS 호출
-            fetch(GAS_URL + '?action=getInventory')
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        inventoryData = data.inventory;
-                        renderInventory();
-                    } else {
-                        showStatus('데이터 로드 실패: ' + data.error, 'error');
-                    }
-                })
-                .catch(err => showStatus('데이터 로드 실패: ' + err.message, 'error'));
-        }
-
-        // 테이블 렌더링
-        function renderInventory() {
-            const tbody = document.getElementById('inventoryBody');
-            if (Object.keys(inventoryData).length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">등록된 데이터가 없습니다.</td></tr>';
-                return;
-            }
-
-            const sorted = Object.entries(inventoryData).sort();
-            tbody.innerHTML = sorted.map(([key, data]) => {
-                const [partNo, sn] = key.split('|');
-                const stock = data.stock;
-                const stockClass = stock === 0 ? 'zero' : stock < 5 ? 'low' : '';
-                const manageNo = data.manageNo || '-';
-                const remark = data.remark || '-';
-
-                return `
-                    <tr class="group-row" onclick="toggleDetail(this)">
-                        <td>${partNo}</td>
-                        <td>${sn}</td>
-                        <td><span class="stock-badge ${stockClass}">${stock}</span></td>
-                        <td>${data.lastIn || '-'}</td>
-                        <td>${data.lastOut || '-'}</td>
-                        <td><strong>${manageNo}</strong></td>
-                        <td>${remark}</td>
-                    </tr>
-                    <tr class="detail-row hidden" data-key="${key}">
-                        <td colspan="7" class="detail-cell">
-                            <div style="padding: 10px 0;">
-                                거래이력 상세 (향후 타임라인 추가)
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // 상세 토글
-        function toggleDetail(row) {
-            row.classList.toggle('expanded');
-            const detail = row.nextElementSibling;
-            if (detail && detail.classList.contains('detail-row')) {
-                detail.classList.toggle('hidden');
-            }
-        }
-
-        // 폼 초기화
-        function clearForm() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('partNo').value = '';
-            document.getElementById('serialNo').value = '';
-            document.getElementById('transType').value = '';
-            document.getElementById('quantity').value = '';
-            document.getElementById('transDate').value = today;
-            document.getElementById('manageNo').value = '';
-            document.getElementById('remark').value = '';
-            document.getElementById('dateLabel').textContent = '거래일 *';
-            document.getElementById('partNo').focus();
-        }
-
-        // 상태 메시지
-        function showStatus(msg, type = 'info') {
-            const el = document.getElementById('statusMsg');
-            el.textContent = msg;
-            el.className = 'status-msg' + (type === 'error' ? ' error' : '');
-            if (type !== 'error') setTimeout(() => el.textContent = '', 3000);
         }
     </script>
 </body>
