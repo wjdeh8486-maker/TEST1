@@ -449,7 +449,7 @@
             </div>
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
                 <button class="btn-search" onclick="searchTransactions()">검색</button>
-                <button class="btn-modal btn-close" onclick="closeSearchModal()">취소</button>
+                <button class="btn-modal btn-close" onclick="closeModal('searchModal')">취소</button>
             </div>
             <div id="searchResults"></div>
         </div>
@@ -495,14 +495,14 @@
             </div>
             <div class="modal-buttons">
                 <button class="btn-modal btn-save" onclick="saveEdit()">저장</button>
-                <button class="btn-modal btn-close" onclick="closeEditModal()">취소</button>
+                <button class="btn-modal btn-close" onclick="backToSearch()">취소</button>
             </div>
         </div>
     </div>
 
     <script>
         const SHEET_ID = '1LM_U0txOR-4qij51mRId8lYIuFg6lXhqsV2PYbGVhT8';
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxgRGPNsP4yFtM2NPzS4GzcOySrrHrXgNL4gX6_SAiUQRZx4HqJKw3LH7x0gwY5AQPa/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxb6w_P1d9yi8ta1soNp2rKNl-37U03sk9HLeB0r0f_215yjstY000OWBDxkIP-z1T3/exec';
 
         let inventoryData = {};
         let allTransactions = [];
@@ -514,6 +514,29 @@
             document.getElementById('transDate').value = today;
             loadInventory();
         });
+
+        // 모달 열기/닫기
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        function openSearchModal() {
+            document.getElementById('searchPartNo').value = '';
+            document.getElementById('searchSN').value = '';
+            document.getElementById('searchType').value = '';
+            document.getElementById('searchLimit').value = '10';
+            document.getElementById('searchResults').innerHTML = '';
+            openModal('searchModal');
+        }
+
+        function backToSearch() {
+            closeModal('editModal');
+            openModal('searchModal');
+        }
 
         function updateDateLabel() {
             const transType = document.getElementById('transType').value;
@@ -559,15 +582,6 @@
                 .catch(err => showStatus(err.message, 'error'));
         }
 
-        function openSearchModal() {
-            document.getElementById('searchModal').classList.add('show');
-        }
-
-        function closeSearchModal() {
-            document.getElementById('searchModal').classList.remove('show');
-            document.getElementById('searchResults').innerHTML = '';
-        }
-
         function searchTransactions() {
             const partNo = document.getElementById('searchPartNo').value.trim();
             const sn = document.getElementById('searchSN').value.trim();
@@ -591,7 +605,6 @@
                 .then(data => {
                     if (data.success) {
                         displaySearchResults(data.results);
-                        document.getElementById('searchModal').classList.add('show');
                         showStatus('검색 완료');
                     } else {
                         showStatus(data.error, 'error');
@@ -640,12 +653,8 @@
             document.getElementById('editManageNo').value = tx.manageNo || '';
             document.getElementById('editRemark').value = tx.remark || '';
 
-            document.getElementById('searchModal').classList.remove('show');
-            document.getElementById('editModal').classList.add('show');
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.remove('show');
+            closeModal('searchModal');
+            openModal('editModal');
         }
 
         function saveEdit() {
@@ -667,8 +676,8 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        document.getElementById('editModal').classList.remove('show');
-                        document.getElementById('searchModal').classList.remove('show');
+                        closeModal('editModal');
+                        closeModal('searchModal');
                         loadInventory();
                         showStatus('수정되었습니다.');
                     } else {
@@ -699,7 +708,7 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        document.getElementById('searchModal').classList.remove('show');
+                        closeModal('searchModal');
                         loadInventory();
                         showStatus('삭제되었습니다.');
                     } else {
