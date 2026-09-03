@@ -449,8 +449,9 @@
                         <option value="IN">입고</option>
                     </select>
                 </div>
-                <div class="input-group">
-                    <button class="btn-add" onclick="importExcel()" style="align-self: flex-end; height: fit-content;">가져오기</button>
+                <div class="input-group" style="display: flex; gap: 10px; align-self: flex-end;">
+                    <button class="btn-add" onclick="downloadTemplate()" style="height: fit-content; background: #27ae60;">양식 다운로드</button>
+                    <button class="btn-add" onclick="importExcel()" style="height: fit-content;">가져오기</button>
                 </div>
             </div>
             <div id="statusMsg" class="status-msg"></div>
@@ -929,6 +930,60 @@
             return result;
         }
 
+        /**
+         * 엑셀 양식 다운로드
+         * - 거래유형이 이미 선택되어 있으므로 양식은 1가지로 통일
+         * - 헤더: 거래일 | 도번 | S/N | 수량 | 관리번호
+         * - 입고: 관리번호는 비움
+         * - 출고: 관리번호 입력
+         * 
+         * S/N 입력 방법:
+         *   - 단일: 26091-1
+         *   - 연속: 26091-1,2,3,4
+         *   - 복합: 26091-1,2,3 / 26092-1,5,7
+         */
+        function downloadTemplate() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const transType = document.getElementById('excelTransType').value;
+                const transTypeLabel = transType === 'IN' ? '입고' : '출고';
+
+                // 공통 양식 (관리번호 포함)
+                // S/N 파싱 예시 포함
+                const data = [
+                    ['거래일', '도번', 'S/N', '수량', '관리번호'],
+                    [today, 'M600-006-008', '10', '1', transType === 'OUT' ? '26-262-1' : ''],
+                    [today, 'M600-010-02B', '80,81,82', '3', transType === 'OUT' ? '26-262-2' : ''],
+                    [today, 'M600-003-001', '100,101,102 / 200,201', '5', transType === 'OUT' ? '26-262-3' : ''],
+                    ['', '', '', '', ''],
+                    ['', '', '', '', ''],
+                    ['', '', '', '', '']
+                ];
+
+                const fileName = `${transTypeLabel}_양식_${today}.xlsx`;
+
+                // 워크북 생성
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, '거래이력');
+
+                // 열 너비 설정
+                ws['!cols'] = [
+                    { wch: 12 },  // 거래일
+                    { wch: 15 },  // 도번
+                    { wch: 20 },  // S/N (파싱 예시가 길어서 너비 증가)
+                    { wch: 8 },   // 수량
+                    { wch: 15 }   // 관리번호
+                ];
+
+                // 다운로드
+                XLSX.writeFile(wb, fileName);
+                showStatus(`${transTypeLabel} 양식이 다운로드되었습니다. S/N 형식: 26091-1 또는 26091-1,2,3 또는 26091-1,2 / 26092-3,4`);
+            } catch (err) {
+                showStatus('양식 다운로드 실패: ' + err.message, 'error');
+            }
+        }
+
         function importExcel() {
             const fileInput = document.getElementById('excelFile');
             const file = fileInput.files[0];
@@ -960,11 +1015,14 @@
                         const transDate = row[0] ? String(row[0]).trim() : '';
                         const partNo = row[1] ? String(row[1]).trim() : '';
                         const snRaw = row[2] ? String(row[2]).trim() : '';
-                        const quantity = row[3] ? parseInt(row[3]) : 1;
+                        const totalQuantity = row[3] ? parseInt(row[3]) : 1;
+                        const manageNo = row[4] ? String(row[4]).trim() : '';
                         
                         if (!partNo) continue;
                         
                         const snList = snRaw ? parseSnFormat(snRaw) : [''];
+                        // S/N 개수로 수량을 나누기
+                        const quantityPerSn = Math.floor(totalQuantity / snList.length);
                         
                         snList.forEach(sn => {
                             const payload = {
@@ -972,9 +1030,9 @@
                                 partNo: partNo,
                                 serialNo: sn,
                                 transType: transType,
-                                quantity: quantity,
+                                quantity: quantityPerSn,
                                 transDate: transDate,
-                                manageNo: '',
+                                manageNo: manageNo,
                                 remark: '엑셀 일괄 업로드'
                             };
                             
