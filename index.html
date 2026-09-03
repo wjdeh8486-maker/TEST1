@@ -461,7 +461,22 @@
         <div class="status-section">
             <div class="section-header">
                 <div>현재고 현황 (도번+S/N별)</div>
-                <button class="btn-edit" onclick="openSearchModal()">🔍 수정/삭제</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-edit" onclick="checkCleanupStatus()" style="background: #3498db;">📊 정리 상태</button>
+                    <button class="btn-edit" onclick="downloadTransactionHistory()" style="background: #2ecc71;">📥 거래이력 다운로드</button>
+                    <button class="btn-edit" onclick="openSearchModal()">🔍 수정/삭제</button>
+                </div>
+            </div>
+            <!-- 정리 상태 표시 -->
+            <div id="cleanupStatusPanel" style="display: none; background: #ecf0f1; padding: 12px; margin-bottom: 15px; border-radius: 4px; font-size: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span id="cleanupStatusText" style="color: #27ae60; font-weight: bold;"></span>
+                        <span id="cleanupTimeText" style="color: #666; margin-left: 10px;"></span>
+                        <span id="cleanupDeletedText" style="color: #e74c3c; margin-left: 10px;"></span>
+                    </div>
+                    <button class="btn-add" onclick="toggleCleanupPanel()" style="font-size: 12px; padding: 5px 10px;">닫기</button>
+                </div>
             </div>
             <div class="table-wrapper">
                 <table id="inventoryTable">
@@ -1067,6 +1082,109 @@
                 }
             };
             reader.readAsArrayBuffer(file);
+        }
+
+        /**
+         * 정리 상태 조회
+         */
+        function checkCleanupStatus() {
+            fetch(GAS_URL + '?action=getCleanupStatus')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const panel = document.getElementById('cleanupStatusPanel');
+                        const statusText = document.getElementById('cleanupStatusText');
+                        const timeText = document.getElementById('cleanupTimeText');
+                        const deletedText = document.getElementById('cleanupDeletedText');
+                        
+                        if (data.status === '정리 이력 없음') {
+                            statusText.textContent = '⏳ 정리 이력 없음 (첫 정리는 30분 후)';
+                            timeText.textContent = '';
+                            deletedText.textContent = '';
+                        } else {
+                            statusText.textContent = '✅ 마지막 정리 완료';
+                            timeText.textContent = `(${data.lastCleanupTime} · ${data.timeSinceCleanup})`;
+                            deletedText.textContent = `삭제된 행: ${data.deleted}개`;
+                        }
+                        panel.style.display = 'block';
+                    } else {
+                        showStatus('정리 상태 조회 실패: ' + data.error, 'error');
+                    }
+                })
+                .catch(err => showStatus('오류: ' + err.message, 'error'));
+        }
+
+        /**
+         * 정리 상태 패널 토글
+         */
+        function toggleCleanupPanel() {
+            const panel = document.getElementById('cleanupStatusPanel');
+            panel.style.display = 'none';
+        }
+
+        /**
+         * 거래이력 전체 다운로드 (CSV + XLSX)
+         * DEL/EDT 행도 포함 (데이터 검증용)
+         */
+        function downloadTransactionHistory() {
+            showStatus('거래이력 다운로드 중...');
+            
+            fetch(GAS_URL + '?action=getTransactionHistory')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        showStatus('다운로드 실패: ' + data.error, 'error');
+                        return;
+                    }
+                    
+                    const records = data.data;
+                    if (records.length === 0) {
+                        showStatus('거래 데이터가 없습니다.', 'error');
+                        return;
+                    }
+                    
+                    // 헤더
+                    const headers = ['거래일', '도번', 'S/N', '거래유형', '수량', '관리번호', '비고', '상태'];
+                    
+                    // 데이터 변환
+                    const rows = [headers];
+                    records.forEach(rec => {
+                        rows.push([
+                            rec.거래일,
+                            rec.도번,
+                            rec.SN,
+                            rec.거래유형,
+                            rec.수량,
+                            rec.관리번호,
+                            rec.비고,
+                            rec.상태 || '정상'
+                        ]);
+                    });
+                    
+                    // XLSX 생성
+                    const today = new Date().toISOString().split('T')[0];
+                    const ws = XLSX.utils.aoa_to_sheet(rows);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, '거래이력');
+                    
+                    // 열 너비
+                    ws['!cols'] = [
+                        { wch: 12 },  // 거래일
+                        { wch: 15 },  // 도번
+                        { wch: 10 },  // S/N
+                        { wch: 10 },  // 거래유형
+                        { wch: 8 },   // 수량
+                        { wch: 15 },  // 관리번호
+                        { wch: 20 },  // 비고
+                        { wch: 10 }   // 상태
+                    ];
+                    
+                    const fileName = `거래이력_${today}_${records.length}건.xlsx`;
+                    XLSX.writeFile(wb, fileName);
+                    
+                    showStatus(`✓ ${records.length}건의 거래 이력을 다운로드했습니다.`);
+                })
+                .catch(err => showStatus('오류: ' + err.message, 'error'));
         }
     </script>
 </body>
